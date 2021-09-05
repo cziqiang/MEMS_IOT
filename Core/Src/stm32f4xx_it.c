@@ -25,6 +25,7 @@
 /* USER CODE BEGIN Includes */
 
 #include "usart.h"
+#include "rx4111.h"
 
 /* USER CODE END Includes */
 
@@ -262,28 +263,6 @@ void USART1_IRQHandler(void)
 {
   /* USER CODE BEGIN USART1_IRQn 0 */
 
-//	if(__HAL_UART_GET_FLAG(&huart1,UART_FLAG_RXNE)!= RESET)//如果接受到了一帧数据
-//	{
-//		if(HAL_UART_Receive(&huart1,&nbAckBuf,1,1000)==HAL_OK)
-//		{
-//			HAL_UART_Receive(&huart1,&nbAckBuf,1,1000);
-//			HAL_UART_Transmit(&huart2,&nbAckBuf,1,1000);
-//			if(nbAckCount > (BUFFSIZE-1))		nbAckCount = 0;
-//			NB_ACK_BUF[nbAckCount] = nbAckBuf;
-//			if(++nbAckCount>4)
-//			{
-//				if(strstr((char *)NB_ACK_BUF,"OK\r\n")!=NULL)
-//				{
-	//				while(HAL_UART_Transmit_DMA(&huart2,NB_ACK_BUF,nbAckCount)!=HAL_OK)
-	//				{ if(++timeout>0xFFF){ timeout=0; break;}	}
-//					nbAckCount = 0;
-//					if(cmdFlag) recFlag = 1;	//MCU send command
-//				}
-//			}
-//	}
-//}
-//	
-	
   /* USER CODE END USART1_IRQn 0 */
   HAL_UART_IRQHandler(&huart1);
   /* USER CODE BEGIN USART1_IRQn 1 */
@@ -342,23 +321,7 @@ void USART1_IRQHandler(void)
   */
 void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 {
-//	if(huart->Instance == USART1)
-//	{
-//		if(nbAckCount > (BUFFSIZE-1))		nbAckCount = 0;
-//			NB_Buffer[nbAckCount] = nbAckBuf;
-//			if(++nbAckCount>4)
-//			{
-//				if(strstr((char *)NB_Buffer,"OK\r\n")!=NULL)
-//				{
-//	//				while(HAL_UART_Transmit_DMA(&huart2,NB_ACK_BUF,nbAckCount)!=HAL_OK)
-//	//				{ if(++timeout>0xFFF){ timeout=0; break;}	}
-//					nbAckCount = 0;
-//					if(cmdFlag) recFlag = 1;	//MCU send command
-//				}
-//			}
-//		HAL_UART_Transmit(&huart2,&nbAckBuf,1,1000);
-//		HAL_UART_Receive_IT(&huart1,&nbAckBuf,1);
-//	}
+
 }
 
 /**
@@ -387,7 +350,7 @@ void USART2_IRQHandler(void)
   /* USER CODE END USART2_IRQn 0 */
   HAL_UART_IRQHandler(&huart2);
   /* USER CODE BEGIN USART2_IRQn 1 */
-
+	
   /* USER CODE END USART2_IRQn 1 */
 }
 
@@ -447,6 +410,97 @@ void DMA2_Stream7_IRQHandler(void)
   /* USER CODE END DMA2_Stream7_IRQn 1 */
 }
 
+/**
+  * @brief This function handles USART3 global interrupt.
+  */
+void USART3_IRQHandler(void)
+{
+	uint8_t res;
+	if((__HAL_UART_GET_FLAG(&huart3,UART_FLAG_RXNE)!=RESET))  //接收中断(接收到的数据必须是0x0d 0x0a结尾)
+	{
+		HAL_UART_Receive(&huart3,&res,1,1000); 
+  
+		if((GNSS_RX_STA&0x8000)==0)//接收未完成
+		{
+			if(GNSS_RX_STA&0x4000)//接收到了"$"
+			{
+				if(res=='*')
+				{	
+					if(strstr((char *)GNSS_RX_BUF,"GPRMC")!=NULL)
+					{
+						GNSS_RX_STA|=0x8000;
+						RTC_RX4111_Revise_by_GNSS();
+					}
+					else
+					{
+						memset(GNSS_RX_BUF,0,GNSS_REC_LEN);
+						GNSS_RX_STA = 0;
+					}
+				}			
+				GNSS_RX_BUF[GNSS_RX_STA&0X3FFF]=res ;
+				GNSS_RX_STA++;
+			}
+			else 
+			{
+				if(res=='$')	GNSS_RX_STA|=0x4000;
+				else GNSS_RX_STA = 0;
+			}
+		}
+	}
+	/* USER CODE END USART3_IRQn 0 */
+  HAL_UART_IRQHandler(&huart3);
+	__HAL_UART_ENABLE_IT(&huart3,UART_IT_RXNE);
+  /* USER CODE BEGIN USART3_IRQn 1 */
+//	uint32_t timeout = 0;
+//	while(HAL_UART_GetState(&huart3) != HAL_UART_STATE_READY)
+//	{if(++timeout > HAL_MAX_DELAY)	break;}
+//	
+//	timeout = 0;
+//	while(HAL_UART_Receive_IT(&huart3, GNSS_BUF, GNSS_REC_LEN) != HAL_OK)//一次处理完成之后，重新开启中断
+//	{
+//	 timeout++; //超时处理
+//	 if(timeout>HAL_MAX_DELAY) break;	
+//	}
+  /* USER CODE END USART3_IRQn 1 */
+}
+
+/**
+  * @brief This function handles EXTI line[15:10] interrupts.
+  */
+void EXTI15_10_IRQHandler(void)
+{
+  /* USER CODE BEGIN EXTI15_10_IRQn 0 */
+
+  /* USER CODE END EXTI15_10_IRQn 0 */
+  HAL_GPIO_EXTI_IRQHandler(GPIO_PIN_12);
+  /* USER CODE BEGIN EXTI15_10_IRQn 1 */
+
+  /* USER CODE END EXTI15_10_IRQn 1 */
+}
+/**
+  * @brief  EXTI line detection callbacks.
+  * @param  GPIO_Pin Specifies the pins connected EXTI line
+  * @retval None
+  */
+void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
+{
+  /* Prevent unused argument(s) compilation warning */
+  if(GPIO_Pin == GPIO_PIN_12)
+	{
+		if(fTime==1)
+		{
+			if(RTC_RX4111_SetTime(gTime)==HAL_OK)
+			{
+				fTime = 0;
+				RTC_RX4111_SYNC_GNSS_Stop();
+				MSG_USART(MSG_LEVEL_INFO,"The RTC clock has been synchronized to the latest GPS time.");
+			}
+		}
+	}
+  /* NOTE: This function Should not be modified, when the callback is needed,
+           the HAL_GPIO_EXTI_Callback could be implemented in the user file
+   */
+}
 /* USER CODE BEGIN 1 */
 
 /* USER CODE END 1 */

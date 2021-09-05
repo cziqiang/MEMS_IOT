@@ -106,7 +106,7 @@ void nb_formate(const char * str, ...)
   */
 void uart_nb_printer(const char * str, va_list ap)
 {
-	static char out_str[256]; /* static to limit stack usage */
+	static char out_str[512]; /* static to limit stack usage */
   uint16_t idx = 0;
 	//put the while code before to change the out_str
 	

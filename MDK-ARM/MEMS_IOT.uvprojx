@@ -443,6 +443,11 @@
               <FileType>1</FileType>
               <FilePath>..\Core\Src\flash.c</FilePath>
             </File>
+            <File>
+              <FileName>sdio.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\Core\Src\sdio.c</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>
@@ -464,14 +469,14 @@
               <FilePath>..\APP\Src\nb_bc20.c</FilePath>
             </File>
             <File>
-              <FileName>sd_nand.c</FileName>
+              <FileName>rx4111.c</FileName>
               <FileType>1</FileType>
-              <FilePath>..\APP\Src\sd_nand.c</FilePath>
+              <FilePath>..\APP\Src\rx4111.c</FilePath>
             </File>
             <File>
-              <FileName>rx4111ce.c</FileName>
+              <FileName>sdnand.c</FileName>
               <FileType>1</FileType>
-              <FilePath>..\APP\Src\rx4111ce.c</FilePath>
+              <FilePath>..\APP\Src\sdnand.c</FilePath>
             </File>
           </Files>
         </Group>
@@ -562,6 +567,16 @@
               <FileName>stm32f4xx_hal_uart.c</FileName>
               <FileType>1</FileType>
               <FilePath>../Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_uart.c</FilePath>
+            </File>
+            <File>
+              <FileName>stm32f4xx_hal_sd.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\Drivers\STM32F4xx_HAL_Driver\Src\stm32f4xx_hal_sd.c</FilePath>
+            </File>
+            <File>
+              <FileName>stm32f4xx_ll_sdmmc.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\Drivers\STM32F4xx_HAL_Driver\Src\stm32f4xx_ll_sdmmc.c</FilePath>
             </File>
           </Files>
         </Group>

@@ -33,12 +33,15 @@ extern "C" {
 
 extern UART_HandleTypeDef huart1;
 extern UART_HandleTypeDef huart2;
+extern UART_HandleTypeDef huart3;
 
 /* USER CODE BEGIN Private defines */
 
-#define USER_HUART &huart1
+#define USER_HUART &huart2
 
 #define BUFFSIZE 	512
+
+#define GNSS_REC_LEN  			128  	//定义最大接收字节数 128
 
 extern  volatile uint8_t rx_len ;  //接收一帧数据的长度
 extern volatile uint8_t recFlag; //一帧数据接收完成标志
@@ -47,10 +50,15 @@ extern uint8_t buffer2[BUFFSIZE];  //接收数据缓存数组
 extern uint8_t nbAckBuf;
 extern uint8_t NB_Buffer[BUFFSIZE];
 
+extern uint8_t GNSS_RX_BUF[GNSS_REC_LEN];
+extern uint8_t GNSS_Rec[GNSS_REC_LEN];
+extern uint16_t GNSS_RX_STA;       //接收状态标记	
+
 /* USER CODE END Private defines */
 
 void MX_USART1_UART_Init(void);
 void MX_USART2_UART_Init(void);
+void MX_USART3_UART_Init(void);
 
 /* USER CODE BEGIN Prototypes */
 

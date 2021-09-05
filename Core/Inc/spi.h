@@ -32,18 +32,22 @@ extern "C" {
 /* USER CODE END Includes */
 
 extern SPI_HandleTypeDef hspi1;
+extern SPI_HandleTypeDef hspi2;
 
 /* USER CODE BEGIN Private defines */
 #define SPITIMEOUT 100
 
 #define	ADXL355_CS 		PAout(4)  		//ADXL355µÄÆ¬Ñ¡ÐÅºÅ
 #define SPI_SCK    		PAout(5)
-#define SPI_MOSI			PAout(6)
-#define SPI_MISO			PAin(7)
+#define SPI_MISO			PAin(6)
+#define SPI_MOSI			PAout(7)
+
+#define RTC_CS				PBout(12)
 
 /* USER CODE END Private defines */
 
 void MX_SPI1_Init(void);
+void MX_SPI2_Init(void);
 
 /* USER CODE BEGIN Prototypes */
 

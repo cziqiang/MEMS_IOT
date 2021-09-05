@@ -16,6 +16,7 @@
 #include <stdio.h>
 #include "ano_buff.h"
 #include "nb_bc20.h"
+#include "rx4111.h"
 /****************************** Global Data ***********************************/
 
 int32_t  volatile i32SensorX;
@@ -93,13 +94,13 @@ uint8_t SIMUL_SPI_TransmitReceive(uint8_t txData)
 HAL_StatusTypeDef ADXL355_SPI_RW_Register(uint8_t *txBuf, uint8_t * rxBuf, uint16_t btNum)
 {
 	HAL_StatusTypeDef status;
-	uint8_t i;
 	
 	ADXL355_CS = 0;
 #ifndef USE_SIMULATE_SPI
-	status = HAL_SPI_TransmitReceive(&hspi1,txbuffer,rxbuffer,rlen,SPITIMEOUT);
+	status = HAL_SPI_TransmitReceive(&hspi1,txBuf,rxBuf,btNum,SPITIMEOUT);
+//	status = HAL_SPI_TransmitReceive_DMA(&hspi1,txBuf,rxBuf,btNum);
 #else
-	for(i=0;i<btNum;i++)
+	for(uint8_t i=0;i<btNum;i++)
 	{
 		rxBuf[i] = SIMUL_SPI_TransmitReceive(txBuf[i]);
 	}
@@ -137,7 +138,7 @@ HAL_StatusTypeDef ADXL355_Read_Register(uint8_t reg, uint8_t * rbuffer, enRegsNu
 {
 	HAL_StatusTypeDef status;
 
-	uint16_t i,spiTransLen = rlen +1;
+	uint8_t i,spiTransLen = rlen +1;
 	uint8_t txBuff[ADXL355_REGRWMAX],rxBuff[ADXL355_REGRWMAX];
 	
 	if(spiTransLen > ADXL355_REGRWMAX)
@@ -178,13 +179,25 @@ HAL_StatusTypeDef ADXL355_Set_Range(enRange range)
 		status = ADXL355_Write_Register(RANGE,&ADXL355Txbuff[0],SPI_RW_ONE_REG);
 		adxl355Scale = 128000.0f;
 	}
-	else if(range == ADXL_RANGE_4)
+	else if(range == ADXL_RANGE_8)
 	{
 		ADXL355Txbuff[0] = 0x83;
 		status = ADXL355_Write_Register(RANGE,&ADXL355Txbuff[0],SPI_RW_ONE_REG);
 		adxl355Scale = 64000.0f;
 	}
 	
+	return status;
+}
+
+/**
+   @brief Set sensor range within RANGE register
+   @return none
+**/
+HAL_StatusTypeDef ADXL355_Set_Filter(void)
+{
+	HAL_StatusTypeDef status;
+	ADXL355Txbuff[0] = 0x04;
+	status = ADXL355_Write_Register(FILTER,&ADXL355Txbuff[0],SPI_RW_ONE_REG);
 	return status;
 }
 
@@ -197,6 +210,7 @@ HAL_StatusTypeDef ADXL355_Init(void)
 	HAL_StatusTypeDef status;
 	status = ADXL355_Set_Range(ADXL_RANGE_2);
 	status |= ADXL355_SPI_ReadID();
+	status |= ADXL355_Set_Filter();
 	status |= ADXL355_Start_Sensor();
 	
 	if(status != HAL_OK)
@@ -304,14 +318,12 @@ HAL_StatusTypeDef ADXL355_ReadData(uint8_t regType,volatile uint32_t *ui32Result
 HAL_StatusTypeDef ADXL355_Data_Scan(void)
 {
 	HAL_StatusTypeDef status;
+//	uint64_t timestamp = 0;
 	float volatile accel[3]={0};
-//	int32_t accel_ANO[3]={0};
-
-//	if(ADXL_ScanFlag == 1)
-//	{
-//		ADXL_ScanFlag = 0;
-//		HAL_GPIO_TogglePin(GPIOA,GPIO_PIN_1);
-		
+	int32_t accel_ANO[3]={0};
+	
+//		RTC_RX4111_GetTimestamp(&timestamp);	
+	
 		status = ADXL355_ReadData(XDATA3,&ui32SensorX,SPI_RW_THREE_REG); 
 		status = ADXL355_ReadData(YDATA3,&ui32SensorY,SPI_RW_THREE_REG); 
 		status = ADXL355_ReadData(ZDATA3,&ui32SensorZ,SPI_RW_THREE_REG); 
@@ -334,21 +346,21 @@ HAL_StatusTypeDef ADXL355_Data_Scan(void)
 		accel[1] = (float)i32SensorY / adxl355Scale;
 		accel[2] = (float)i32SensorZ / adxl355Scale;
 		
-		NB_PostFor355(accel);
 		
-//		HAL_GPIO_TogglePin(GPIOA,GPIO_PIN_1);
+//		NB_PostFor355(accel,timestamp);
 		
 //		MSG_USART(MSG_LEVEL_INFO,"X acceleration X : %.8f ", accel[0]);				/* Print the X-axis data */
 //		MSG_USART(MSG_LEVEL_INFO,"Y acceleration Y : %.8f ", accel[1]);        /* Print the Y-axis data */
 //		MSG_USART(MSG_LEVEL_INFO,"Z acceleration Z : %.8f ", accel[2]);        /* Print the Z-axis data */
 		
 		
-//		for(uint8_t i=0;i<3;i++)
-//			accel_ANO[i] = accel[i]*10000000;
+		for(uint8_t i=0;i<3;i++)
+			accel_ANO[i] = accel[i]*10000000;
 
 //		ADXL355_Send_ANO(accel_ANO);
-//		ADXL355_Send_ANO_int32(accel_ANO);
-		
+		ADXL355_Send_ANO_int32(accel_ANO);
+				HAL_GPIO_TogglePin(GPIOB,GPIO_PIN_8);
+
 //		MSG_USART(MSG_LEVEL_INFO,"ANO acceleration X : %d ", accel_ANO[0]);				/* Print the X-axis data */
 //		MSG_USART(MSG_LEVEL_INFO,"ANO acceleration Y : %d ", accel_ANO[1]);        /* Print the Y-axis data */
 //		MSG_USART(MSG_LEVEL_INFO,"ANO acceleration Z : %d ", accel_ANO[2]);        /* Print the Z-axis data */

@@ -16,6 +16,16 @@
 #define PubTopic         "/sys/a1ksNkXCHQc/MEMS_IOT_02/thing/event/property/post"
 #define SubTopic        "/sys/a1ksNkXCHQc/MEMS_IOT_02/thing/service/property/set"
 
+/* Shenzhen University Iot platform */
+#define ProductModel		"BC26MEMS"
+#define ProductSN				"BC26MEMS001"
+#define ProductID				"526558"
+
+#define ClientID				"BC26MEMS001@526558@sha1"
+#define Username				"BC26MEMS001@526558@2021"
+#define Password				"358141cd40a06ddc98047eac519c8819cf11f71b"
+
+
 typedef enum 
 {
   NB_OK       = 0x00U,
@@ -30,6 +40,5 @@ BC20_Status NB_CompareAck(const char *str,uint16_t sec);
 
 void NB_MQTT_Init(void);
 
-BC20_Status NB_PostFor355(volatile float *acc);
-
+BC20_Status NB_PostFor355(volatile float *acc,uint64_t timestamp);
 #endif

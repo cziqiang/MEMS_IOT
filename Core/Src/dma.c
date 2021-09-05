@@ -44,23 +44,28 @@ void MX_DMA_Init(void)
 
   /* DMA interrupt init */
   /* DMA2_Stream7_IRQn interrupt configuration --USART1_TX */
-  HAL_NVIC_SetPriority(DMA2_Stream7_IRQn, 2, 0);
+  HAL_NVIC_SetPriority(DMA2_Stream7_IRQn, 4, 0);
   HAL_NVIC_EnableIRQ(DMA2_Stream7_IRQn);
   /* DMA2_Stream2_IRQn interrupt configuration --USART1_RX */
-  HAL_NVIC_SetPriority(DMA2_Stream2_IRQn, 2, 0);
+  HAL_NVIC_SetPriority(DMA2_Stream2_IRQn, 4, 0);
   HAL_NVIC_EnableIRQ(DMA2_Stream2_IRQn);
   /* DMA1_Stream5_IRQn interrupt configuration --USART2_RX */
-  HAL_NVIC_SetPriority(DMA1_Stream5_IRQn, 3, 0);
+  HAL_NVIC_SetPriority(DMA1_Stream5_IRQn, 5, 0);
   HAL_NVIC_EnableIRQ(DMA1_Stream5_IRQn);
   /* DMA1_Stream6_IRQn interrupt configuration --USART2_TX */
-  HAL_NVIC_SetPriority(DMA1_Stream6_IRQn, 3, 0);
+  HAL_NVIC_SetPriority(DMA1_Stream6_IRQn, 5, 0);
   HAL_NVIC_EnableIRQ(DMA1_Stream6_IRQn);
+	
+	/* DMA2_Stream6_IRQn interrupt configuration --SDIO */
+  HAL_NVIC_SetPriority(DMA2_Stream6_IRQn, 0, 0);
+  HAL_NVIC_EnableIRQ(DMA2_Stream6_IRQn);
+	
 #ifndef USE_SIMULATE_SPI
   /* DMA2_Stream3_IRQn interrupt configuration --SPI1_TX */
-  HAL_NVIC_SetPriority(DMA2_Stream3_IRQn, 0, 0);
+  HAL_NVIC_SetPriority(DMA2_Stream3_IRQn, 6, 0);
   HAL_NVIC_EnableIRQ(DMA2_Stream3_IRQn);
   /* DMA2_Stream0_IRQn interrupt configuration --SPI1_RX */
-  HAL_NVIC_SetPriority(DMA2_Stream0_IRQn, 0, 0);
+  HAL_NVIC_SetPriority(DMA2_Stream0_IRQn, 6, 0);
   HAL_NVIC_EnableIRQ(DMA2_Stream0_IRQn);
 #endif
 }

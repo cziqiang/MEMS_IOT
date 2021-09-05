@@ -27,17 +27,22 @@ volatile uint8_t rx_len = 0;
 uint8_t buffer1[BUFFSIZE];
 uint8_t buffer2[BUFFSIZE];
 
-//接收状态
-//bit15，	接收完成标志
-//bit14,bit13,bit12，	接收到"OK/r/n"
-//bit11~0，	接收到的有效字节数目
 uint8_t nbAckBuf;
 uint8_t NB_Buffer[BUFFSIZE];
+
+uint8_t GNSS_RX_BUF[GNSS_REC_LEN];
+uint8_t GNSS_Rec[GNSS_REC_LEN];
+//接收状态
+//bit15，	接收完成标志
+//bit14，	接收到0x0d
+//bit13~0，	接收到的有效字节数目
+uint16_t GNSS_RX_STA=0;       //接收状态标记	
 
 /* USER CODE END 0 */
 
 UART_HandleTypeDef huart1;
 UART_HandleTypeDef huart2;
+UART_HandleTypeDef huart3;
 DMA_HandleTypeDef hdma_usart1_rx;
 DMA_HandleTypeDef hdma_usart1_tx;
 DMA_HandleTypeDef hdma_usart2_rx;
@@ -72,8 +77,8 @@ void MX_USART1_UART_Init(void)
 //	__HAL_UART_ENABLE_IT(&huart1,UART_IT_RXNE);
 //	HAL_UART_Receive_IT(&huart1,&nbAckBuf,1);
 
-	__HAL_UART_ENABLE_IT(&huart1,UART_IT_IDLE);
-	HAL_UART_Receive_DMA(&huart1,buffer1,BUFFSIZE);
+//	__HAL_UART_ENABLE_IT(&huart1,UART_IT_IDLE);
+//	HAL_UART_Receive_DMA(&huart1,buffer1,BUFFSIZE);
 	
   /* USER CODE END USART1_Init 2 */
 
@@ -107,6 +112,37 @@ void MX_USART2_UART_Init(void)
 	__HAL_UART_ENABLE_IT(&huart2,UART_IT_IDLE);
 	HAL_UART_Receive_DMA(&huart2,buffer2,BUFFSIZE);
   /* USER CODE END USART2_Init 2 */
+
+}
+
+/* USART3 init function */
+
+void MX_USART3_UART_Init(void)
+{
+
+  /* USER CODE BEGIN USART3_Init 0 */
+
+  /* USER CODE END USART3_Init 0 */
+
+  /* USER CODE BEGIN USART3_Init 1 */
+
+  /* USER CODE END USART3_Init 1 */
+  huart3.Instance = USART3;
+  huart3.Init.BaudRate = 9600;
+  huart3.Init.WordLength = UART_WORDLENGTH_8B;
+  huart3.Init.StopBits = UART_STOPBITS_1;
+  huart3.Init.Parity = UART_PARITY_NONE;
+  huart3.Init.Mode = UART_MODE_TX_RX;
+  huart3.Init.HwFlowCtl = UART_HWCONTROL_NONE;
+  huart3.Init.OverSampling = UART_OVERSAMPLING_16;
+  if (HAL_UART_Init(&huart3) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN USART3_Init 2 */
+	__HAL_UART_ENABLE_IT(&huart3,UART_IT_RXNE);
+//  HAL_UART_Receive_IT(&huart3,GNSS_RX_BUF,GNSS_REC_LEN);
+	/* USER CODE END USART3_Init 2 */
 
 }
 
@@ -172,7 +208,7 @@ void HAL_UART_MspInit(UART_HandleTypeDef* uartHandle)
     __HAL_LINKDMA(uartHandle,hdmatx,hdma_usart1_tx);
 
     /* USART1 interrupt Init */
-    HAL_NVIC_SetPriority(USART1_IRQn, 0, 0);
+    HAL_NVIC_SetPriority(USART1_IRQn, 1, 0);
     HAL_NVIC_EnableIRQ(USART1_IRQn);
   /* USER CODE BEGIN USART1_MspInit 1 */
 
@@ -236,11 +272,38 @@ void HAL_UART_MspInit(UART_HandleTypeDef* uartHandle)
     __HAL_LINKDMA(uartHandle,hdmatx,hdma_usart2_tx);
 
     /* USART2 interrupt Init */
-    HAL_NVIC_SetPriority(USART2_IRQn, 0, 0);
+    HAL_NVIC_SetPriority(USART2_IRQn, 2, 0);
     HAL_NVIC_EnableIRQ(USART2_IRQn);
   /* USER CODE BEGIN USART2_MspInit 1 */
 
   /* USER CODE END USART2_MspInit 1 */
+  }
+	else if(uartHandle->Instance==USART3)
+  {
+  /* USER CODE BEGIN USART3_MspInit 0 */
+
+  /* USER CODE END USART3_MspInit 0 */
+    /* USART3 clock enable */
+    __HAL_RCC_USART3_CLK_ENABLE();
+
+    __HAL_RCC_GPIOB_CLK_ENABLE();
+    /**USART3 GPIO Configuration
+    PB10     ------> USART3_TX
+    PB11     ------> USART3_RX
+    */
+    GPIO_InitStruct.Pin = GPIO_PIN_10|GPIO_PIN_11;
+    GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
+    GPIO_InitStruct.Pull = GPIO_NOPULL;
+    GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
+    GPIO_InitStruct.Alternate = GPIO_AF7_USART3;
+    HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
+
+    /* USART3 interrupt Init */
+    HAL_NVIC_SetPriority(USART3_IRQn, 0, 0);
+//    HAL_NVIC_EnableIRQ(USART3_IRQn);
+  /* USER CODE BEGIN USART3_MspInit 1 */
+
+  /* USER CODE END USART3_MspInit 1 */
   }
 }
 

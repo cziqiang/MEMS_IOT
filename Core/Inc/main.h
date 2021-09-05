@@ -48,8 +48,8 @@ extern "C" {
 /* Exported macro ------------------------------------------------------------*/
 /* USER CODE BEGIN EM */
 
-#define MSG_LEVEL MSG_LEVEL_INFO			//UART Message level
-#define USE_SIMULATE_SPI
+#define MSG_LEVEL MSG_LEVEL_MAX			//UART Message level
+//#define USE_SIMULATE_SPI
 
 /* USER CODE END EM */
 

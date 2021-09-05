@@ -31,7 +31,8 @@
 #include "adxl355.h"
 #include "pcf8563.h"
 #include "nb_bc20.h"
-#include "sd_nand.h"
+#include "sdnand.h"
+#include "rx4111.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -49,7 +50,7 @@
 /* Private function prototypes -----------------------------------------------*/
 void SystemClock_Config(void);
 
-
+void TestCode(void);
 /* Private user code ---------------------------------------------------------*/
 
 
@@ -72,14 +73,15 @@ int main(void)
   /* Configure the system clock */
   SystemClock_Config();
 
-
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
   MX_DMA_Init();
+	NAND_Flash_Init();
   MX_SPI1_Init();
+	MX_SPI2_Init();
   MX_USART1_UART_Init();
   MX_USART2_UART_Init();
-
+	MX_USART3_UART_Init();
 	
   /* USER CODE BEGIN 2 */
 	// Setup message facility to see internal traces from FW */
@@ -87,33 +89,45 @@ int main(void)
 	MSG_USART(MSG_LEVEL_INFO,"Hardware is running.");
 	
 	ADXL355_Init();
-	PCF8563_Init();
 		
 	MX_TIM2_Init();
+	
+//	NB_BC20_Init();
+//	NB_MQTT_Init();
+	
+	MX_TIM3_Init();	
+	
+	NAND_Flash_TestFunction();
+	
+	if(RTC_RX4111_Init()!=HAL_OK)
+		MSG_USART(MSG_LEVEL_INFO,"RX4111 initial Failed.");
+	else
+		MSG_USART(MSG_LEVEL_INFO,"RX4111 initial Succeed.");
 
-	
-	NB_BC20_Init();
-	NB_MQTT_Init();
-	
-	MX_TIM3_Init();
-	
-//	SDTest();
 //	RW_InternalFlash_Test();
 //	EraseFlash_UserArea();
 
 	MSG_USART(MSG_LEVEL_INFO,"Hardware initial OK.");
   /* USER CODE END 2 */
-	
+//	RTC_RX4111_SYNC_GNSS_Start();
+
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
   while (1)
   {
     /* USER CODE END WHILE */
-		
-//		PCF8563_GetTimer();
+		if(ADXL_ScanFlag)
+		{
+			ADXL_ScanFlag = 0;
+//			ADXL355_Data_Scan();
+		}
 
 //		SDTest();
-		HAL_Delay(1000);
+//		RTC_RX4111_SelfTest();
+	
+		//Test IO 
+//		HAL_GPIO_TogglePin(GPIOB,GPIO_PIN_8);
+//		HAL_Delay(1000);
     /* USER CODE BEGIN 3 */
   }
   /* USER CODE END 3 */
@@ -213,9 +227,13 @@ void TestCode(void)
 	MSG_USART(MSG_LEVEL_INFO,"float = %d byte.", sizeof(float));
 	MSG_USART(MSG_LEVEL_INFO,"double = %d byte.", sizeof(double));
 	MSG_USART(MSG_LEVEL_INFO,"long double = %d byte.\n\n", sizeof(long double));
-	MSG_USART(MSG_LEVEL_INFO,"uint32_t = %d byte.\n\n", sizeof(uint32_t));
-	MSG_USART(MSG_LEVEL_INFO,"uint64_t = %d byte.\n\n", sizeof(uint64_t));
-	
+	MSG_USART(MSG_LEVEL_INFO,"uint32_t = %d byte.\n\n",sizeof(uint32_t));
+	MSG_USART(MSG_LEVEL_INFO,"uint64_t = %d byte.\n\n",sizeof(uint64_t));
+	MSG_USART(MSG_LEVEL_INFO,"uint32_t = %d byte.\n\n",sizeof(uint32_t));
+	MSG_USART(MSG_LEVEL_INFO,"uint64_t = %d byte.\n\n",sizeof(uint64_t));
+	MSG_USART(MSG_LEVEL_INFO,"uint32_t = %d byte.\n\n",sizeof(uint32_t));
+	MSG_USART(MSG_LEVEL_INFO,"uint64_t = %d byte.\n\n",sizeof(uint64_t));
+
 }
 
 #ifdef  USE_FULL_ASSERT

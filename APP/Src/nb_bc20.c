@@ -19,9 +19,9 @@ BC20_Status NB_BC20_Init(void)
 {
 	BC20_Status status;
 	MSG_USART(MSG_LEVEL_INFO,"Wait for BC20 to initialize...");
-	NB_USART("AT");
+	NB_USART("ATE1");
 	HAL_Delay(3000);
-	for(uint8_t i=0;i<0x0F;i++)
+	for(uint8_t i=0;i<0x03;i++)
 	{
 		status = NB_PostMSG("+CGATT: 1",CMD_CGATT);
 		if(status==NB_OK)
@@ -90,6 +90,8 @@ BC20_Status NB_CompareAck(const char *str,uint16_t sec)
 	return status;
 }
 
+// Connect ali cloud platform test
+/*
 void NB_MQTT_Init(void)
 {
 	BC20_Status status;
@@ -133,5 +135,62 @@ BC20_Status NB_PostFor355(volatile float *acc)
 	\"Acc_Y\":{\"value\":%f},\
 	\"Acc_Z\":{\"value\":%f}},\
 	\"method\":\"thing.event.property.post\"}\"",ProductKey,DeviceName,acc[0],acc[1],acc[2]);
+	return status;
+}
+
+*/
+
+void NB_MQTT_Init(void)
+{
+	BC20_Status status;
+	NB_USART("AT+QMTCLOSE=0");
+	HAL_Delay(1000);
+	NB_USART("AT+QMTDISC=0");
+	HAL_Delay(1000);
+	
+	NB_PostMSG("+QMTOPEN: 0,0","AT+QMTOPEN=0,frp.sealan.tech,20812");
+	status = NB_PostMSG("+QMTCONN: 0,0,0","AT+QMTCONN=0,\"%s\",\"%s\",\"%s\"",ClientID,Username,Password);
+	if(status == NB_OK)
+	{
+		MSG_USART(MSG_LEVEL_INFO,"MQTT client has opened.");
+		MSG_USART(MSG_LEVEL_INFO,"BC20 MQTT connect \"ShenDa\" Iot platform successful.");
+		NB_USART("ATE0");
+	}
+	else
+		MSG_USART(MSG_LEVEL_INFO,"BC20 MQTT intial failed.");
+	
+//		status = NB_PostMSG("+QMTPUB: 0,0,0","AT+QMTPUB=0,0,0,0,\
+//	\"/ns/prop/526558/BC26MEMS001/\",\"{\"pk\":\"526558\",\
+//	\"sn\":\"BC26MEMS001\",\"seq\":12313123,\
+//	\"service\":\"device.property\",\"datams\":200,\"count\":2,\
+//	\"data\":{\
+//	\"Acc_X\":[\"value\":%f],\
+//	\"Acc_Y\":[\"value\":%f],\
+//	\"Acc_Z\":[\"value\":%f]},\
+//	\"timestamp\":[\"%llu\"]}\"",ProductKey,DeviceName,0.12345678,0.2134567,1.02464875,(uint64_t)1630052349071);
+}
+
+BC20_Status NB_PostFor355(volatile float *acc,const uint64_t timestamp)
+{
+	BC20_Status status;
+//	status = NB_PostMSG("+QMTPUB: 0,0,0","AT+QMTPUB=0,0,0,0,\
+//	\"/ns/prop/%s/%s/\",\"{\"pk\":\"%s\",\
+//	\"sn\":\"%s\",\"seq\":12313123,\
+//	\"service\":\"device.property\",\"datams\":200,\"count\":2,\
+//	\"data\":{\
+//	\"Acc_X\":[\"value\":%f],\
+//	\"Acc_Y\":[\"value\":%f],\
+//	\"Acc_Z\":[\"value\":%f]},\
+//	\"timestamp\":[\"%llu\"]}\"",ProductID,ProductSN,ProductID,ProductSN,acc[0],acc[1],acc[2],timestamp);
+	cmdFlag = 1;	//MCU send msg
+	NB_USART("AT+QMTPUB=0,0,0,0,\
+	\"/ns/prop/%s/%s/\",\"{\"pk\":\"%s\",\
+	\"sn\":\"%s\",\"seq\":12313123,\
+	\"service\":\"device.property\",\"datams\":200,\"count\":2,\
+	\"data\":{\
+	\"Acc_X\":[\"%f\"],\
+	\"Acc_Y\":[\"%f\"],\
+	\"Acc_Z\":[\"%f\"],\
+	\"timestamp\":[\"%llu\"]}}\"",ProductID,ProductSN,ProductID,ProductSN,acc[0],acc[1],acc[2],timestamp);
 	return status;
 }
